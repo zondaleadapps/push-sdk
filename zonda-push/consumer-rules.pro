@@ -1,0 +1,3 @@
+-keep class com.zonda.push.ZondaMessagingService { *; }
+-keep class com.zonda.push.ZondaPushOpenActivity { *; }
+-keep class com.zonda.push.ZondaSyncWorker { *; }
