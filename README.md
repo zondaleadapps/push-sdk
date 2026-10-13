@@ -1,47 +1,51 @@
-# Zonda Push для Android
+# Zonda Push SDK
 
-Библиотека подписывает установку приложения на Zonda Push и показывает уведомления FCM. Это отдельный репозиторий: `google-services.json` и ключ Firebase остаются в самом приложении.
+Android-библиотека пушей. У каждого приложения свой SDK-ключ `zp_…` из вкладки Push в Zonda CRM. Ключ другого приложения не подойдёт: сервер узнаёт приложение по этому ключу.
 
-Адрес и ключ берутся во вкладке Push в Zonda CRM, в блоке настройки приложения. Ключ начинается с `zp_`.
+`google-services.json` и плагин `com.google.gms.google-services` остаются в приложении. Свой `FirebaseMessagingService` не нужен.
 
 ## Подключение
 
-В `settings.gradle.kts` приложения укажите путь к клону этого репозитория:
+В `settings.gradle.kts`, рядом с `google()` и `mavenCentral()`:
 
 ```kotlin
-includeBuild("/path/to/zonda-push-android")
+maven { url = uri("https://jitpack.io") }
 ```
 
-В `build.gradle.kts` модуля приложения:
+В модуле приложения только зависимость:
 
 ```kotlin
 dependencies {
-    implementation("com.zonda.push:zonda-push")
+    implementation("com.zonda.push:push-sdk:1.0.0")
 }
 ```
 
-Плагин `com.google.gms.google-services` и файл `google-services.json` подключаются в приложении, не в этой библиотеке. Свой `FirebaseMessagingService` в приложении не нужен: его заменяет `ZondaMessagingService`.
-
 ## Старт
+
+Ключ берётся в CRM: Push → приложение → «Показать ключ».
 
 ```kotlin
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        ZondaPush.init(
-            this,
-            ZondaPushConfig(
-                endpoint = "https://push.example.com",
-                ingestKey = "zp_...",
-            ),
-        )
+        ZondaPush.init(this, "zp_ключ_этого_приложения")
     }
 }
 ```
 
-`init` сохраняет постоянный `install_id`, создаёт канал `zonda_default` и отправляет установку на `POST /v1/users`. Повтор уходит при новом токене FCM и после ответа на разрешение уведомлений.
+Либо без кода, через манифест — SDK стартует сам:
 
-На Android 13 разрешение запрашивается отдельно, лучше после того, как пользователь уже в приложении:
+```xml
+<meta-data
+    android:name="com.zonda.push.sdk_key"
+    android:value="zp_ключ_этого_приложения" />
+```
+
+Адрес сервера по умолчанию `https://push.android-crm.site`. Другой адрес: `ZondaPush.init(this, key, "https://...")` или meta-data `com.zonda.push.endpoint`.
+
+`init` создаёт канал `zonda_default`, постоянный install id и отправляет установку на `POST /v1/users`.
+
+На Android 13 разрешение спрашивайте отдельно, когда пользователь уже в приложении:
 
 ```kotlin
 ZondaPush.requestPermission(this)
@@ -56,23 +60,18 @@ ZondaPush.addSegment(this, "payers")
 ZondaPush.removeSegment(this, "payers")
 ```
 
-Имя: строчные латинские буквы, цифры, `_` и `-`, до 40 символов. Отправка идёт на `POST /v1/users/segments` и повторяется, когда появится сеть.
+Имя: строчные латинские буквы, цифры, `_` и `-`, до 40 символов.
 
 ## Нажатие
 
-Сервер ставит `click_action` `com.zonda.push.OPEN`. По нажатию открывается `ZondaPushOpenActivity`. Если в данных пуша есть `url` с `http` или `https`, открывается ссылка. Иначе открывается приложение.
-
-Свой обработчик задаётся в `Application.onCreate`, чтобы он был готов и при холодном старте:
+Сервер ставит `click_action` `com.zonda.push.OPEN`. Если в данных пуша есть `url` с `http` или `https`, открывается ссылка. Иначе открывается приложение.
 
 ```kotlin
 ZondaPush.setOpenHandler { data ->
-    // верните true, если переход обработан
     false
 }
 ```
 
-Канал по умолчанию — `zonda_default`. Его же подставляет сервер, если в рассылке канал не указан. Маленькая иконка в статус-баре — белый силуэт колокольчика. Свою иконку можно передать в `ZondaPushConfig.smallIconRes`. Большая картинка уведомления приходит с сервера.
+Обработчик задавайте в `Application.onCreate`, иначе холодный старт его не увидит.
 
-## Требования
-
-minSdk 23, compileSdk 35. Сеть — `HttpURLConnection`, очередь — WorkManager, сообщения — Firebase Messaging.
+minSdk 23, compileSdk 35.

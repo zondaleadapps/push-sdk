@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "zonda-push-android"
+rootProject.name = "push-sdk"
 include(":zonda-push")

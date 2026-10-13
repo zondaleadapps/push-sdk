@@ -13,6 +13,11 @@
             </intent-filter>
         </service>
 
+        <provider
+            android:name=".ZondaPushInitProvider"
+            android:authorities="${applicationId}.zonda.push.init"
+            android:exported="false" />
+
         <activity
             android:name=".ZondaPushOpenActivity"
             android:exported="true"

@@ -14,6 +14,10 @@ object ZondaPush {
 
     private var openHandler: ((Map<String, String>) -> Boolean)? = null
 
+    fun init(context: Context, sdkKey: String, endpoint: String = ZondaPushConfig.DEFAULT_ENDPOINT) {
+        init(context, ZondaPushConfig(endpoint = endpoint, ingestKey = sdkKey))
+    }
+
     fun init(context: Context, config: ZondaPushConfig) {
         val app = context.applicationContext
         InstallStore(app).saveConfig(config)

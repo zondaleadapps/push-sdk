@@ -20,13 +20,16 @@ class ZondaPushConfig(
 
     companion object {
         const val DEFAULT_CHANNEL_ID = "zonda_default"
+        const val DEFAULT_ENDPOINT = "https://push.android-crm.site"
 
         fun fromMetaData(context: Context, fallback: ZondaPushConfig? = null): ZondaPushConfig {
             val meta = context.packageManager
                 .getApplicationInfo(context.packageName, android.content.pm.PackageManager.GET_META_DATA)
                 .metaData
             val endpoint = meta?.getString("com.zonda.push.endpoint") ?: fallback?.endpoint
-            val key = meta?.getString("com.zonda.push.ingest_key") ?: fallback?.ingestKey
+            val key = meta?.getString("com.zonda.push.sdk_key")
+                ?: meta?.getString("com.zonda.push.ingest_key")
+                ?: fallback?.ingestKey
             require(!endpoint.isNullOrBlank() && !key.isNullOrBlank()) {
                 "Set com.zonda.push.endpoint and com.zonda.push.ingest_key, or call ZondaPush.init"
             }
