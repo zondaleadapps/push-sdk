@@ -1,4 +1,5 @@
 jdk:
   - openjdk17
 install:
-  - ./gradlew :zonda-push:publishToMavenLocal -x test --no-daemon
+  - SDK_VERSION=$(git describe --tags --exact-match | sed 's/^v//')
+  - ./gradlew :zonda-push:publishToMavenLocal -x test -PsdkVersion="$SDK_VERSION" --no-daemon

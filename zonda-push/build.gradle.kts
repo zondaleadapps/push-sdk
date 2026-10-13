@@ -4,8 +4,8 @@ plugins {
     id("maven-publish")
 }
 
-group = "com.zonda.push"
-version = "1.0.0"
+group = "com.github.zondaleadapps"
+version = providers.gradleProperty("sdkVersion").orElse("1.0.0").get()
 
 android {
     namespace = "com.zonda.push"
@@ -44,7 +44,7 @@ afterEvaluate {
         publications {
             create<MavenPublication>("release") {
                 from(components["release"])
-                groupId = "com.zonda.push"
+                groupId = "com.github.zondaleadapps"
                 artifactId = "push-sdk"
                 version = project.version.toString()
                 pom {
