@@ -12,13 +12,10 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.google.firebase.messaging.FirebaseMessaging
 import java.io.IOException
+import java.net.URLEncoder
 import java.util.Locale
 import java.util.TimeZone
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 internal class ZondaSyncWorker(
     context: Context,
@@ -33,7 +30,8 @@ internal class ZondaSyncWorker(
                 val body = PushRequest.segmentsBody(InstallStore(applicationContext).installId(), add, remove)
                 PushApi.post(config, "/v1/users/segments", body)
             } else {
-                PushApi.post(config, "/v1/users", userBody(applicationContext))
+                val token = resolveToken(applicationContext, config)
+                PushApi.post(config, "/v1/users", userBody(applicationContext, token))
             }
             Result.success()
         } catch (_: IOException) {
@@ -72,7 +70,7 @@ internal class ZondaSyncWorker(
             WorkManager.getInstance(context).enqueue(request)
         }
 
-        fun userBody(context: Context): String {
+        fun userBody(context: Context, token: String?): String {
             val appContext = context.applicationContext
             val granted = notificationsAllowed(appContext)
             val info = appContext.packageManager.getPackageInfo(appContext.packageName, 0)
@@ -81,7 +79,7 @@ internal class ZondaSyncWorker(
             val locale = Locale.getDefault()
             return PushRequest.userBody(
                 installId = InstallStore(appContext).installId(),
-                token = currentToken(),
+                token = token,
                 permission = if (granted) "granted" else "denied",
                 subscribed = granted,
                 language = locale.language.orEmpty(),
@@ -92,6 +90,12 @@ internal class ZondaSyncWorker(
             )
         }
 
+        private fun resolveToken(context: Context, config: ZondaPushConfig): String? {
+            val packageName = URLEncoder.encode(context.packageName, Charsets.UTF_8.name())
+            val raw = PushApi.get(config, "/v1/config?package=$packageName")
+            return FirebaseGate.tokenOrNull(context, FirebaseRemote.parse(raw))
+        }
+
         private fun notificationsAllowed(context: Context): Boolean {
             if (Build.VERSION.SDK_INT >= 33) {
                 val granted = context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
@@ -99,17 +103,6 @@ internal class ZondaSyncWorker(
                 if (!granted) return false
             }
             return NotificationManagerCompat.from(context).areNotificationsEnabled()
-        }
-
-        private fun currentToken(): String? {
-            val token = AtomicReference<String?>()
-            val latch = CountDownLatch(1)
-            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                token.set(if (task.isSuccessful) task.result else null)
-                latch.countDown()
-            }
-            latch.await(10, TimeUnit.SECONDS)
-            return token.get()
         }
     }
 }

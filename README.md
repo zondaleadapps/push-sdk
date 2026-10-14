@@ -2,7 +2,7 @@
 
 Android-библиотека пушей. У каждого приложения свой SDK-ключ `zp_…` из вкладки Push в Zonda CRM. Ключ другого приложения не подойдёт: сервер узнаёт приложение по этому ключу.
 
-`google-services.json` и плагин `com.google.gms.google-services` остаются в приложении. Свой `FirebaseMessagingService` не нужен.
+`google-services.json` в приложение класть не нужно. SDK-ключа достаточно, чтобы установка появилась в CRM и было видно, разрешил пользователь уведомления или нет. Пуши начнут доходить после того, как в CRM загрузите Firebase service account — обновлять приложение в сторе для этого не надо. Свой `FirebaseMessagingService` не нужен.
 
 ## Подключение
 
@@ -16,7 +16,7 @@ maven { url = uri("https://jitpack.io") }
 
 ```kotlin
 dependencies {
-    implementation("com.github.zondaleadapps:push-sdk:1.0.0")
+    implementation("com.github.zondaleadapps:push-sdk:1.1.0")
 }
 ```
 

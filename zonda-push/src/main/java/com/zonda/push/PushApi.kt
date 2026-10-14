@@ -24,4 +24,20 @@ internal object PushApi {
             connection.disconnect()
         }
     }
+
+    fun get(config: ZondaPushConfig, path: String): String {
+        val connection = (URL(config.endpointBase() + path).openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 15_000
+            readTimeout = 15_000
+            setRequestProperty("Authorization", "Bearer ${config.ingestKey}")
+        }
+        try {
+            val code = connection.responseCode
+            if (code !in 200..299) throw IOException("zonda push HTTP $code")
+            return connection.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        } finally {
+            connection.disconnect()
+        }
+    }
 }
