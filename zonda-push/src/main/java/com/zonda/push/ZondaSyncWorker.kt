@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationManagerCompat
+import androidx.work.Configuration
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -53,7 +54,7 @@ internal class ZondaSyncWorker(
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .setInputData(workDataOf(KEY_JOB to JOB_SYNC))
                 .build()
-            WorkManager.getInstance(context).enqueueUniqueWork("zonda-push-sync", ExistingWorkPolicy.REPLACE, request)
+            workManager(context).enqueueUniqueWork("zonda-push-sync", ExistingWorkPolicy.REPLACE, request)
         }
 
         fun enqueueSegments(context: Context, add: List<String>, remove: List<String>) {
@@ -67,7 +68,15 @@ internal class ZondaSyncWorker(
                     ),
                 )
                 .build()
-            WorkManager.getInstance(context).enqueue(request)
+            workManager(context).enqueue(request)
+        }
+
+        private fun workManager(context: Context): WorkManager {
+            val app = context.applicationContext
+            if (!WorkManager.isInitialized()) {
+                WorkManager.initialize(app, Configuration.Builder().build())
+            }
+            return WorkManager.getInstance(app)
         }
 
         fun userBody(context: Context, token: String?): String {

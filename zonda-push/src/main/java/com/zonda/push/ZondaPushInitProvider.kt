@@ -5,10 +5,13 @@ import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 
 /**
- * Starts the SDK before [android.app.Application.onCreate] when the app
- * declares `com.zonda.push.sdk_key`. Same idea as OneSignal's app id.
+ * Starts the SDK when the app declares `com.zonda.push.sdk_key`.
+ * Work is posted to the main looper so it runs after Application.onCreate:
+ * some apps remove WorkManagerInitializer and initialize WorkManager there.
  */
 class ZondaPushInitProvider : ContentProvider() {
     override fun onCreate(): Boolean {
@@ -20,7 +23,9 @@ class ZondaPushInitProvider : ContentProvider() {
             ?: meta?.getString("com.zonda.push.ingest_key")
         if (key.isNullOrBlank()) return true
         val endpoint = meta?.getString("com.zonda.push.endpoint") ?: ZondaPushConfig.DEFAULT_ENDPOINT
-        ZondaPush.init(app, key, endpoint)
+        Handler(Looper.getMainLooper()).post {
+            ZondaPush.init(app, key, endpoint)
+        }
         return true
     }
 

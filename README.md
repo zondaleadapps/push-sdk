@@ -16,7 +16,7 @@ maven { url = uri("https://jitpack.io") }
 
 ```kotlin
 dependencies {
-    implementation("com.github.zondaleadapps:push-sdk:1.1.1")
+    implementation("com.github.zondaleadapps:push-sdk:1.1.2")
 }
 ```
 
