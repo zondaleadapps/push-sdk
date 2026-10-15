@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.zondaleadapps"
-version = providers.gradleProperty("sdkVersion").orElse("1.1.0").get()
+version = providers.gradleProperty("sdkVersion").orElse("1.1.1").get()
 
 android {
     namespace = "com.zonda.push"
