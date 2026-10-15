@@ -20,7 +20,7 @@ class ZondaPushConfig(
 
     companion object {
         const val DEFAULT_CHANNEL_ID = "zonda_default"
-        const val DEFAULT_ENDPOINT = "https://push.android-crm.site"
+        const val DEFAULT_ENDPOINT = "https://android-crm.site"
 
         fun fromMetaData(context: Context, fallback: ZondaPushConfig? = null): ZondaPushConfig {
             val meta = context.packageManager

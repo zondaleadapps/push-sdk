@@ -16,7 +16,7 @@ maven { url = uri("https://jitpack.io") }
 
 ```kotlin
 dependencies {
-    implementation("com.github.zondaleadapps:push-sdk:1.1.2")
+    implementation("com.github.zondaleadapps:push-sdk:1.1.3")
 }
 ```
 
@@ -41,7 +41,7 @@ class App : Application() {
     android:value="zp_ключ_этого_приложения" />
 ```
 
-Адрес сервера по умолчанию `https://push.android-crm.site`. Другой адрес: `ZondaPush.init(this, key, "https://...")` или meta-data `com.zonda.push.endpoint`.
+Адрес сервера по умолчанию `https://android-crm.site`. Другой адрес: `ZondaPush.init(this, key, "https://...")` или meta-data `com.zonda.push.endpoint`.
 
 `init` создаёт канал `zonda_default`, постоянный install id и отправляет установку на `POST /v1/users`.
 
